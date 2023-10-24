@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 
+import { parser } from "./liquidsoap.grammar";
 import { Input, NodeType, Tree, TreeCursor } from "@lezer/common";
 import parseArgs from "minimist";
 import BluebirdPromise from "bluebird";
 import { glob } from "glob";
-
-// @ts-ignore
-import { parser } from "./index.js";
-
 import fs from "node:fs";
 import process from "node:process";
 

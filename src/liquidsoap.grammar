@@ -28,6 +28,14 @@
   exprs
 }
 
+
+kw<term> { Keyword { term } }
+ckw<term> { ControlKeyword { term } }
+dkw<term> { DefinitionKeyword { term } }
+lop<term> { LogicalOperator { Op { term } } }
+cop<term> { ControlOperator { Op { term } } }
+aop<term> { ArithmeticOperator { Op { term } } }
+
 Integer {
   uminus? integer
 }
@@ -70,6 +78,10 @@ Encoder {
   encoderName (!no_app "(" EncoderParams { encoderParams }? ")")?
 }
 
+regexpContent {
+  regexpContentToken | EscapedChar
+}
+
 Regexp {
   "r/" regexpContent* regexpEnd
 }
@@ -81,6 +93,10 @@ String {
 
 StringInterpolation {
   expr
+}
+
+doubleQuoteStringContent {
+  doubleQuoteStringContentToken | EscapedChar
 }
 
 beginDoubleQuoteInterpolatedString {
@@ -102,6 +118,10 @@ doubleQuoteStringInterpolation {
 doubleQuoteString {
   doubleQuoteStringInterpolation |
   !stringInterpolation "\"" doubleQuoteStringContent* "\""
+}
+
+singleQuoteStringContent {
+  singleQuoteStringContentToken | EscapedChar
 }
 
 beginSingleQuoteInterpolatedString {
@@ -126,7 +146,7 @@ singleQuoteString {
 }
 
 exprs {
-  "open" expr exprSep? exprs |
+  kw<"open"> expr exprSep? exprs |
   expr exprSep? |
   expr exprSep? exprs |
   binding exprSep? |
@@ -134,7 +154,7 @@ exprs {
 }
 
 simpleFunBody {
-  "open" expr exprSep? exprs |
+  kw<"open"> expr exprSep? exprs |
   expr exprSep? |
   expr exprSep? exprs |
   explicitBinding exprSep? |
@@ -161,10 +181,10 @@ LabeledArgument {
 }
 
 Argsof {
-  "%argsof" "(" Var ")" |
-  "%argsof" "(" Subfield ")" |
-  "%argsof" "(" varlbra "[" argsOfParams "]" ")" |
-  "%argsof" "(" SubfieldLbra "[" argsOfParams "]" ")"
+  kw<"%argsof"> "(" Var ")" |
+  kw<"%argsof"> "(" Subfield ")" |
+  kw<"%argsof"> "(" varlbra "[" argsOfParams "]" ")" |
+  kw<"%argsof"> "(" SubfieldLbra "[" argsOfParams "]" ")"
 }
 
 arg {
@@ -198,35 +218,35 @@ parseDecorationArgs {
 }
 
 parseDecoration /* precedence: right 1 */ {
-  ("json" | "yaml") "." "parse" (!no_app "[" parseDecorationArgs? "]")?
+  (kw<"json"> | kw<"yaml">) "." kw<"parse"> (!no_app "[" parseDecorationArgs? "]")?
 }
 
 defDecoration {
   LetDecoration {
-    "rec" |
-    "replaces"
+    kw<"rec"> |
+    kw<"replaces">
   }
 }
 
 LetDecoration {
-  "eval" |
-  "replaces" |
+  kw<"eval"> |
+  kw<"replaces"> |
   parseDecoration
 }
 
 let {
-  "let" LetDecoration?
+  dkw<"let"> LetDecoration?
 }
 
 def {
-  "def" defDecoration?
+  dkw<"def"> defDecoration?
 }
 
 Def {
-  def "(" optvar ":" Type ")" "="? Definition { exprs } "end" |
-  def optvar "="? Definition { exprs } "end" |
-  def Subfield "="? Definition { exprs } "end" |
-  def (SubfieldLpar | varlpar) Arglist "="? Definition { exprs } "end"
+  def "(" optvar ":" Type ")" "="? Definition { exprs } dkw<"end"> |
+  def optvar "="? Definition { exprs } dkw<"end"> |
+  def Subfield "="? Definition { exprs } dkw<"end"> |
+  def (SubfieldLpar | varlpar) Arglist "="? Definition { exprs } dkw<"end">
 }
 
 Let {
@@ -427,20 +447,20 @@ SubfieldLpar {
 }
 
 Include {
-  ("%include" | "%include_extra") absoluteInclude |
-  ("%include" | "%include_extra") relativeInclude
+  (kw<"%include"> | kw<"%include_extra">) absoluteInclude |
+  (kw<"%include"> | kw<"%include_extra">) relativeInclude
 }
 
 IfDef {
-  ("%ifdef" | "%ifndef") (Var | Subfield) exprs ("%else" exprs)? "%endif"
+  (kw<"%ifdef"> | kw<"%ifndef">) (Var | Subfield) exprs (kw<"%else"> exprs)? kw<"%endif">
 }
 
 IfEncoder {
-  ("%ifencoder" | "%ifnencoder") Encoder exprs ("%else" exprs)? "%endif"
+  (kw<"%ifencoder"> | kw<"%ifnencoder">) Encoder exprs (kw<"%else"> exprs)? kw<"%endif">
 }
 
 IfVersion {
-  "%ifversion" ("==" | ">=" | "<=" | ">" | "<") (Integer | Float | Version) exprs ("%else" exprs)? "%endif"
+  kw<"%ifversion"> (cop<"=="> | cop<">="> | cop<"<="> | cop<">"> | cop<"<">) (Integer | Float | Version) exprs (kw<"%else"> exprs)? kw<"%endif">
 }
 
 innerListSpread {
@@ -481,10 +501,10 @@ NamedArg {
 appListElem {
   NamedArg |
   AnonymousArg { expr } |
-  "%argsof" "(" Var ")" |
-  "%argsof" "(" Subfield ")" |
-  "%argsof" "(" varlbra "[" argsOfParams "]" ")" |
-  "%argsof" "(" SubfieldLbra "[" argsOfParams "]" ")"
+  kw<"%argsof"> "(" Var ")" |
+  kw<"%argsof"> "(" Subfield ")" |
+  kw<"%argsof"> "(" varlbra "[" argsOfParams "]" ")" |
+  kw<"%argsof"> "(" SubfieldLbra "[" argsOfParams "]" ")"
 }
 
 appList {
@@ -510,25 +530,25 @@ AnonymousFunction {
 }
 
 If {
-  "if"
+  ckw<"if">
   IfCondition { exprs }
-  "then"
+  ckw<"then">
   IfThen { exprs }
-  ("elsif" ElsifCondition { exprs } "then" ElsifThen { exprs })*
-  ("else" IfElse { exprs })?
-  "end"
+  (ckw<"elsif"> ElsifCondition { exprs } ckw<"then"> ElsifThen { exprs })*
+  (ckw<"else"> IfElse { exprs })?
+  ckw<"end">
 }
 
 InlineIf {
-  expr !question "?" expr !colon ":" expr
+  expr !question ckw<"?"> expr !colon ckw<":"> expr
 }
 
 Get {
-  !get "!" expr
+  !get DerefOf { "!" } expr
 }
 
 Set {
-  expr Op { !set ":=" } expr
+  expr UpdateOp { !set ":=" } expr
 }
 
 Record {
@@ -540,7 +560,7 @@ Record {
 }
 
 Coerce {
-  "(" expr Op { ":" } Type ")"
+  "(" expr TypeOp { ":" } Type ")"
 }
 
 Parens {
@@ -548,7 +568,7 @@ Parens {
 }
 
 Not {
-  !not "not" expr
+  !not lop<"not"> expr
 }
 
 Invoke {
@@ -570,7 +590,7 @@ Assoc {
 }
 
 Block {
-  "begin" exprs "end"
+  kw<"begin"> exprs kw<"end">
 }
 
 SimpleFun {
@@ -578,14 +598,14 @@ SimpleFun {
 }
 
 While {
-  "while" expr "do" WhileDo { exprs } "end"
+  ckw<"while"> expr ckw<"do"> WhileDo { exprs } ckw<"end">
 }
-
+ 
 ForVar { optvar }
 
 For {
-  "for" ForVar "=" ForFrom { expr } "to" ForTo { expr } "do" ForDo { exprs } "end" |
-  "for" ForVar "=" ForIteration { expr } "do" ForDo { exprs } "end"
+  ckw<"for"> ForVar "=" ForFrom { expr } ckw<"to"> ForTo { expr } ckw<"do"> ForDo { exprs } ckw<"end"> |
+  ckw<"for"> ForVar "=" ForIteration { expr } ckw<"do"> ForDo { exprs } ckw<"end">
 }
 
 Coalesce {
@@ -595,33 +615,33 @@ Coalesce {
 TryBody { exprs }
 
 Try {
-  "try"
+  ckw<"try">
     TryBody
-  "catch" optvar ":" List "do"
+  ckw<"catch"> optvar kw<":"> List ckw<"do">
     TryDo { exprs }
-  "end" |
-  "try"
+  ControlEnd { "end" } |
+  ckw<"try">
     TryBody
-  "catch" optvar "do"
+  ckw<"catch"> optvar ckw<"do">
     TryDo { exprs }
-  "end"
+  ckw<"end">
 }
 
 And {
-  expr !and "and" expr
+  expr !and lop<"and"> expr
 }
 
 Or {
-  expr !or "or" expr
+  expr !or lop<"or"> expr
 }
 
-Op {
-  !bin1 bin1 |
-  !bin2 bin2 |
-  !bin3 bin3
+op {
+  !bin1 cop<bin1> |
+  !bin2 aop<bin2> |
+  !bin3 aop<bin3>
 }
 
-Infix { expr Op expr }
+Infix { expr op expr }
 
 Minus {
   uminus "(" expr ")"
@@ -697,23 +717,23 @@ BlockComment {
   @precedence { encoderName, bin2 }
   @precedence { Version, integer }
   @precedence { TimePredicate, integer }
-  @precedence { regexpContent, regexpEnd }
-  @precedence { "\"", doubleQuoteStringContent }
-  @precedence { "#{", doubleQuoteStringContent } 
-  @precedence { "'", singleQuoteStringContent }
-  @precedence { "#{", singleQuoteStringContent }
-  @precedence { doubleQuoteStringContent, spaces }
-  @precedence { singleQuoteStringContent, spaces }
-  @precedence { doubleQuoteStringContent, newline }
-  @precedence { singleQuoteStringContent, newline }
-  @precedence { doubleQuoteStringContent, "#<" }
-  @precedence { singleQuoteStringContent, "#<" }
-  @precedence { regexpContent, spaces }
-  @precedence { regexpContent, newline }
-  @precedence { regexpContent, "#<" }
-  @precedence { doubleQuoteStringContent, LineComment }
-  @precedence { singleQuoteStringContent, LineComment }
-  @precedence { regexpContent, LineComment }
+  @precedence { regexpContentToken, regexpEnd }
+  @precedence { "\"", doubleQuoteStringContentToken }
+  @precedence { "#{", doubleQuoteStringContentToken } 
+  @precedence { "'", singleQuoteStringContentToken }
+  @precedence { "#{", singleQuoteStringContentToken }
+  @precedence { doubleQuoteStringContentToken, spaces }
+  @precedence { singleQuoteStringContentToken, spaces }
+  @precedence { doubleQuoteStringContentToken, newline }
+  @precedence { singleQuoteStringContentToken, newline }
+  @precedence { doubleQuoteStringContentToken, "#<" }
+  @precedence { singleQuoteStringContentToken, "#<" }
+  @precedence { regexpContentToken, spaces }
+  @precedence { regexpContentToken, newline }
+  @precedence { regexpContentToken, "#<" }
+  @precedence { doubleQuoteStringContentToken, LineComment }
+  @precedence { singleQuoteStringContentToken, LineComment }
+  @precedence { regexpContentToken, LineComment }
   @precedence { "#{", LineComment }
   @precedence { "#<", LineComment }
   @precedence { "#<", blockCommentContent }
@@ -754,13 +774,14 @@ BlockComment {
   exprSep {
     ";"
   }
-  regexpContent { ![/\\]+ | "\\" _ }
+  regexpContentToken { ![/\\]+ }
   regexpEnd { "/" $[gismu]* }
-  doubleQuoteStringContent {
-    !["#\\]+ | "#" | "\\" _
+  EscapedChar { "\\" _ }
+  doubleQuoteStringContentToken {
+    !["#\\]+ | "#" 
   }
-  singleQuoteStringContent {
-    !['#\\]+ | "#" | "\\" _
+  singleQuoteStringContentToken {
+    !['#\\]+ | "#"
   }
   relativeInclude { "\"" !["]+ "\"" }
   absoluteInclude { "<" ![>]+ ">" }
