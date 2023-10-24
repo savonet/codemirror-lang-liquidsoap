@@ -1,0 +1,767 @@
+@context noUminus from "./tokens.js"
+
+@precedence {
+  blockComment @right
+  include @left
+  stringInterpolation @right
+  lpar,
+  no_app @right,
+  colon,
+  dot @left,
+  get,
+  coloncolon @right,
+  minus @left,
+  bin3 @left,
+  bin2 @left,
+  bin1 @left,
+  not,
+  or @left,
+  and @left,
+  question,
+  set @right,
+  coalesce,
+  yields,
+  binding
+}
+
+@top SourceFile {
+  exprs
+}
+
+Integer {
+  uminus? integer
+}
+
+Float {
+  uminus? float
+}
+
+Var {
+  var
+}
+
+varlpar {
+  Var { varLpar }
+}
+
+varlbra {
+  Var { varLbra }
+}
+
+optvar {
+  "_" |
+  Var
+}
+
+encoderParam {
+  Var "=" expr |
+  String "=" expr |
+  Var |
+  String |
+  Encoder
+}
+
+encoderParams {
+  encoderParam |
+  encoderParam "," encoderParams
+}
+
+Encoder {
+  encoderName (!no_app "(" EncoderParams { encoderParams }? ")")?
+}
+
+Regexp {
+  "r/" regexpContent* regexpEnd
+}
+
+String {
+  doubleQuoteString |
+  singleQuoteString
+}
+
+StringInterpolation {
+  expr
+}
+
+beginDoubleQuoteInterpolatedString {
+  "\"" doubleQuoteStringContent* "#{"
+}
+
+innerDoubleQuoteInterpolatedString {
+  "}" doubleQuoteStringContent* "#{" StringInterpolation
+}
+
+endDoubleQuoteInterpolatedString {
+ !stringInterpolation "}" doubleQuoteStringContent* "\""
+}
+
+doubleQuoteStringInterpolation {
+  beginDoubleQuoteInterpolatedString StringInterpolation (innerDoubleQuoteInterpolatedString)* endDoubleQuoteInterpolatedString
+}
+
+doubleQuoteString {
+  doubleQuoteStringInterpolation |
+  !stringInterpolation "\"" doubleQuoteStringContent* "\""
+}
+
+beginSingleQuoteInterpolatedString {
+  "'" singleQuoteStringContent* "#{"
+}
+
+innerSingleQuoteInterpolatedString {
+  "}" singleQuoteStringContent* "#{" StringInterpolation
+}
+
+endSingleQuoteInterpolatedString {
+ !stringInterpolation "}" singleQuoteStringContent* "'"
+}
+
+singleQuoteStringInterpolation {
+  beginSingleQuoteInterpolatedString StringInterpolation (innerSingleQuoteInterpolatedString)* endSingleQuoteInterpolatedString
+}
+
+singleQuoteString {
+  singleQuoteStringInterpolation |
+  "'" singleQuoteStringContent* "'"
+}
+
+exprs {
+  "open" expr exprSep? exprs |
+  expr exprSep? |
+  expr exprSep? exprs |
+  binding exprSep? |
+  binding exprSep? exprs
+}
+
+simpleFunBody {
+  "open" expr exprSep? exprs |
+  expr exprSep? |
+  expr exprSep? exprs |
+  explicitBinding exprSep? |
+  explicitBinding exprSep? exprs
+}
+
+Arglist {
+  "(" ((arg ",")* arg)? ")"
+}
+
+opt {
+  "=" expr
+}
+
+AnonymousArgument {
+  optvar opt? |
+  "(" optvar ":" Type ")" opt?
+}
+
+LabeledArgument {
+  "~" Var opt? |
+  "~" "(" Var ":" Type ")" opt? |
+  "~" Var "=" "_"
+}
+
+Argsof {
+  "%argsof" "(" Var ")" |
+  "%argsof" "(" Subfield ")" |
+  "%argsof" "(" varlbra "[" argsOfParams "]" ")" |
+  "%argsof" "(" SubfieldLbra "[" argsOfParams "]" ")"
+}
+
+arg {
+  LabeledArgument |
+  AnonymousArgument |
+  Argsof
+}
+
+KeepArg {
+  Var
+}
+
+ExcludeArg {
+  "!" Var
+}
+
+argsOfParams {
+  KeepArg |
+  ExcludeArg |
+  KeepArg "," argsOfParams |
+  ExcludeArg "," argsOfParams
+}
+
+parseDecorationEl {
+  Var |
+  Var "=" expr
+}
+
+parseDecorationArgs {
+  (parseDecorationEl ",")* parseDecorationEl
+}
+
+parseDecoration /* precedence: right 1 */ {
+  ("json" | "yaml") "." "parse" (!no_app "[" parseDecorationArgs? "]")?
+}
+
+defDecoration {
+  LetDecoration {
+    "rec" |
+    "replaces"
+  }
+}
+
+LetDecoration {
+  "eval" |
+  "replaces" |
+  parseDecoration
+}
+
+let {
+  "let" LetDecoration?
+}
+
+def {
+  "def" defDecoration?
+}
+
+Def {
+  def "(" optvar ":" Type ")" "="? Definition { exprs } "end" |
+  def optvar "="? Definition { exprs } "end" |
+  def Subfield "="? Definition { exprs } "end" |
+  def (SubfieldLpar | varlpar) Arglist "="? Definition { exprs } "end"
+}
+
+Let {
+  let Subfield "=" Definition { expr } |
+  let pattern "=" Definition { expr } |
+  let "(" pattern ":" Type ")" "=" Definition { expr }
+}
+
+explicitBinding {
+  Let |
+  Def
+}
+
+Binding {
+  optvar !binding "=" Definition { expr }
+}
+
+binding /* precedence: binding */ {
+  explicitBinding |
+  Binding
+}
+
+patternList {
+  pattern |
+  patternList "," pattern
+}
+
+Spread {
+  Op { "..." } optvar?
+}
+
+patternListWithSpread {
+  Spread |
+  patternList |
+  Spread "," patternList |
+  patternList "," Spread |
+  patternList "," Spread "," patternList
+}
+
+TuplePattern {
+  "(" patternList? ")"
+}
+
+ListPattern {
+  "[" patternListWithSpread "]"
+}
+
+methPatternEl {
+  Var |
+  Var "?" |
+  Var "=" pattern
+}
+
+methPatternList {
+  methPatternEl |
+  methPatternEl "," methPatternList
+}
+
+recordPattern {
+  "{" methPatternList? "}"
+}
+
+recordSpreadPattern {
+  "{" methSpreadList "}"
+}
+
+methSpreadList /* precedence: left 1 */ {
+  Op { "..." } optvar? |
+  methPatternEl "," methSpreadList
+}
+
+MethPattern {
+  recordSpreadPattern |
+  recordPattern |
+  Var "." recordPattern |
+  "_" "." recordPattern |
+  TuplePattern "." recordPattern |
+  ListPattern "." recordPattern
+}
+
+pattern {
+  optvar |
+  TuplePattern |
+  ListPattern |
+  MethPattern
+}
+
+Type {
+  "_" |
+  Var|
+  Type "?" |
+  "[" Type "]" |
+  "[" Type "]" "as" "json.object" |
+  (!lpar "(" TupleType ")") |
+  ("(" ArgsType? ")" !yields "->" Type) |
+  "{" RecordType? "}" |
+  Type "." Var |
+  Type "." "{" RecordType? "}" |
+  SourceType
+}
+
+RecordType {
+  (MethType ",")* MethType
+}
+
+MethType {
+  Var ":" Type |
+  Var "?" ":" Type |
+  String "as" Var ":" Type |
+  String "as" Var "?" ":" Type
+}
+
+SourceType {
+  varlpar "(" ")" |
+  varlpar "(" SourceTracksType ")"
+}
+
+SourceTracksType {
+  Var "=" ContentType |
+  "..." |
+  Var "=" ContentType "," SourceTracksType
+}
+
+ContentType {
+  Var |
+  Var "." Var |
+  Var "." Var "." Var |
+  varlpar "(" ContentArgsType? ")" |
+  Var "." varlpar "(" ContentArgsType? ")" |
+  Var "." Var "." varlpar "(" ContentArgsType? ")"
+}
+
+ContentArgsType {
+  (ContentArgType ",")* ContentArgType
+}
+
+ContentArgType {
+  Var |
+  String |
+  Integer |
+  Float |
+  Var "=" Var |
+  Var "=" String |
+  Var "=" Integer |
+  Var "=" Float
+}
+
+TupleType {
+  Type "*" Type |
+  Type "*" TupleType
+}
+
+ArgType {
+  Type |
+  Var ":" Type |
+  "?" Var ":" Type
+}
+
+ArgsType {
+  (ArgType ",")* ArgType
+}
+
+Subfield {
+  Var "." inSubfield
+}
+
+Method { Var }
+
+inSubfield {
+  Method |
+  Method "." inSubfield
+}
+
+subfieldLbra {
+  Var "." inSubfieldLbra
+}
+
+inSubfieldLbra {
+  Method { varlbra } |
+  Method "." inSubfieldLbra
+}
+
+SubfieldLbra {
+  Subfield { subfieldLbra }
+}
+
+subfieldLpar {
+  Var "." inSubfieldLpar
+}
+
+inSubfieldLpar {
+  Method { varlpar } |
+  Method "." inSubfieldLpar
+}
+
+SubfieldLpar {
+  Subfield { subfieldLpar }
+}
+
+Include {
+  ("%include" | "%include_extra") absoluteInclude |
+  ("%include" | "%include_extra") relativeInclude
+}
+
+IfDef {
+  ("%ifdef" | "%ifndef") (Var | Subfield) exprs ("%else" exprs)? "%endif"
+}
+
+IfEncoder {
+  ("%ifencoder" | "%ifnencoder") Encoder exprs ("%else" exprs)? "%endif"
+}
+
+IfVersion {
+  "%ifversion" ("==" | ">=" | "<=" | ">" | "<") (Integer | Float | Version) exprs ("%else" exprs)? "%endif"
+}
+
+innerListSpread {
+  Op { "..." } expr?
+}
+
+innerListItem {
+  Spread { innerListSpread } |
+  expr
+}
+
+innerList {
+  (innerListItem ",")* innerListItem
+}
+
+List {
+  "[" innerList? "]"
+}
+
+innerTuple {
+  expr "," expr |
+  expr "," innerTuple
+}
+
+RecordEntry {
+  Method "=" expr
+}
+
+record /* precedence: left 1 */ {
+  RecordEntry |
+  record "," RecordEntry
+}
+
+NamedArg {
+  Var "=" expr
+}
+
+appListElem {
+  NamedArg |
+  AnonymousArg { expr } |
+  "%argsof" "(" Var ")" |
+  "%argsof" "(" Subfield ")" |
+  "%argsof" "(" varlbra "[" argsOfParams "]" ")" |
+  "%argsof" "(" SubfieldLbra "[" argsOfParams "]" ")"
+}
+
+appList {
+  appListElem |
+  appListElem "," appList
+}
+
+MethodApp {
+  varlpar "(" appList? ")"
+}
+
+invoked {
+  Method |
+  MethodApp
+}
+
+Tuple {
+  "(" innerTuple? ")"
+}
+
+AnonymousFunction {
+  "fun" Arglist !yields "->" expr
+}
+
+If {
+  "if"
+  IfCondition { exprs }
+  "then"
+  IfThen { exprs }
+  ("elsif" ElsifCondition { exprs } "then" ElsifThen { exprs })*
+  ("else" IfElse { exprs })?
+  "end"
+}
+
+InlineIf {
+  expr !question "?" expr !colon ":" expr
+}
+
+Get {
+  !get "!" expr
+}
+
+Set {
+  expr Op { !set ":=" } expr
+}
+
+Record {
+  (expr !dot "." "{" record? ","? "}") |
+  "{" Op { "..." } expr "}" |
+  "{" record "," Op { "..." } expr "}" |
+  "{" record ","? "}" |
+  "{" "}"
+}
+
+Coerce {
+  "(" expr Op { ":" } Type ")"
+}
+
+Parens {
+  "(" expr ")"
+}
+
+Not {
+  !not "not" expr
+}
+
+Invoke {
+  expr "." invoked |
+  (expr !question "?." invoked)
+}
+
+App {
+  varlpar "(" appList? ")"
+}
+
+Append {
+  expr Op { !coloncolon "::" } expr
+}
+
+Assoc {
+  varlbra "[" expr "]" |
+  expr "." varlbra "[" expr "]"
+}
+
+Block {
+  "begin" exprs "end"
+}
+
+SimpleFun {
+  "{" simpleFunBody "}"
+}
+
+While {
+  "while" expr "do" WhileDo { exprs } "end"
+}
+
+ForVar { optvar }
+
+For {
+  "for" ForVar "=" ForFrom { expr } "to" ForTo { expr } "do" ForDo { exprs } "end" |
+  "for" ForVar "=" ForIteration { expr } "do" ForDo { exprs } "end"
+}
+
+Coalesce {
+  expr Op { !coalesce "??" } expr
+}
+
+TryBody { exprs }
+
+Try {
+  "try"
+    TryBody
+  "catch" optvar ":" List "do"
+    TryDo { exprs }
+  "end" |
+  "try"
+    TryBody
+  "catch" optvar "do"
+    TryDo { exprs }
+  "end"
+}
+
+And {
+  expr !and "and" expr
+}
+
+Or {
+  expr !or "or" expr
+}
+
+Op {
+  !bin1 bin1 |
+  !bin2 bin2 |
+  !bin3 bin3
+}
+
+Infix { expr Op expr }
+
+Minus {
+  uminus "(" expr ")"
+}
+
+expr {
+  Include |
+  IfDef |
+  IfEncoder |
+  IfVersion |
+  Coerce |
+  Parens |
+  Integer |
+  Not |
+  Bool |
+  Float |
+  Minus |
+  String |
+  Var |
+  List |
+  Get |
+  Set |
+  Encoder |
+  Tuple |
+  Record |
+  Invoke |
+  App |
+  Append |
+  Assoc |
+  Block |
+  AnonymousFunction |
+  SimpleFun |
+  While |
+  For |
+  Coalesce |
+  Try |
+  If |
+  Regexp |
+  InlineIf |
+  And |
+  Or |
+  Infix |
+  TimePredicate
+}
+
+BlockComment {
+  "#<" blockCommentContent* ">#"
+}
+
+
+@skip {
+  spaces |
+  newline |
+  LineComment |
+  BlockComment
+}
+
+@external tokens varTok from "./tokens" { var, varLpar, varLbra }
+@external tokens floatTok from "./tokens" { float }
+@external tokens uminusTok from "./tokens" { uminus }
+
+@tokens {
+  @precedence { "%argsof", encoderName }
+  @precedence { "%ifdef", encoderName }
+  @precedence { "%ifndef", encoderName }
+  @precedence { "%ifencoder", encoderName }
+  @precedence { "%ifnencoder", encoderName }
+  @precedence { "%ifversion", encoderName }
+  @precedence { "%else", encoderName }
+  @precedence { "%endif", encoderName }
+  @precedence { "%include", encoderName }
+  @precedence { "%include_extra", encoderName }
+  @precedence { encoderName, bin2 }
+  @precedence { Version, integer }
+  @precedence { TimePredicate, integer }
+  @precedence { regexpContent, regexpEnd }
+  @precedence { "\"", doubleQuoteStringContent }
+  @precedence { "#{", doubleQuoteStringContent } 
+  @precedence { "'", singleQuoteStringContent }
+  @precedence { "#{", singleQuoteStringContent }
+  @precedence { doubleQuoteStringContent, spaces }
+  @precedence { singleQuoteStringContent, spaces }
+  @precedence { doubleQuoteStringContent, newline }
+  @precedence { singleQuoteStringContent, newline }
+  @precedence { doubleQuoteStringContent, "#<" }
+  @precedence { singleQuoteStringContent, "#<" }
+  @precedence { regexpContent, spaces }
+  @precedence { regexpContent, newline }
+  @precedence { regexpContent, "#<" }
+  @precedence { doubleQuoteStringContent, LineComment }
+  @precedence { singleQuoteStringContent, LineComment }
+  @precedence { regexpContent, LineComment }
+  @precedence { "#{", LineComment }
+  @precedence { "#<", LineComment }
+  @precedence { "#<", blockCommentContent }
+  @precedence { ">#", blockCommentContent }
+  @precedence { blockCommentContent, LineComment }
+  @precedence { blockCommentContent, spaces }
+  @precedence { blockCommentContent, newline }
+
+  spaces { $[\u0009 \u000b\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000\ufeff]+ }
+  newline { $[\r\n\u2028\u2029] }
+  LineComment { "#" ![\n]* }
+  blockCommentContent { ![>]+ | ">" }
+
+  bin1 {
+    "!=" | "==" | "<" | "<=" | ">" | ">="
+  }
+  bin2 {
+    "+" | "%" | "^" | "+." | "-." | "-"
+  }
+  bin3 {
+    "/" | "*." | "/." | "*" | "mod"
+  }
+  integer {
+    $[0-9] $[0-9_]* | "0" $[xX] $[0-9a-fA-F_]+ | "0" $[oO] $[0-7_]+
+  }
+  Version {
+    $[0-9] $[0-9_]* "\\." $[0-9] $[0-9_]* "\\." $[0-9] $[0-9_]*
+  }
+  Bool {
+    "true" | "false"
+  }
+  encoderName {
+    "%" $[a-zA-Z]+ $[a-zA-Z0-9_\.]+
+  }
+  TimePredicate /* precedence: left 1 */ {
+    ($[0-9]+ "w")? $[0-9]+ "h" $[0-9]+ | $[0-9]+ "w" ($[0-9]+ "h")? ($[0-9]+ "m")? ($[0-9]+ "s")? | ($[0-9]+ "w")? $[0-9]+ "h" ($[0-9]+ "m")? ($[0-9]+ "s")? | ($[0-9]+ "w")? ($[0-9]+ "h")? $[0-9]+ "m" ($[0-9]+ "s")? | ($[0-9]+ "w")? ($[0-9]+ "h")? ($[0-9]+ "m")? $[0-9]+ "s"
+  }
+  exprSep {
+    ";"
+  }
+  regexpContent { ![/\\]+ | "\\" _ }
+  regexpEnd { "/" $[gismu]* }
+  doubleQuoteStringContent {
+    !["#\\]+ | "#" | "\\" _
+  }
+  singleQuoteStringContent {
+    !['#\\]+ | "#" | "\\" _
+  }
+  relativeInclude { "\"" !["]+ "\"" }
+  absoluteInclude { "<" ![>]+ ">" }
+}
