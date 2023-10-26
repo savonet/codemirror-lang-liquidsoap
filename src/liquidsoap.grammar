@@ -35,6 +35,7 @@ dkw<term> { DefinitionKeyword { term } }
 lop<term> { LogicalOperator { Op { term } } }
 cop<term> { ControlOperator { Op { term } } }
 aop<term> { ArithmeticOperator { Op { term } } }
+defined<term> { Defined { term } }
 
 Integer {
   uminus? integer
@@ -48,8 +49,8 @@ Var {
   var
 }
 
-varlpar {
-  Var { varLpar }
+Varlpar {
+  varLpar
 }
 
 varlbra {
@@ -83,7 +84,7 @@ regexpContent {
 }
 
 Regexp {
-  "r/" regexpContent* regexpEnd
+  RegexpStart[closedBy=RegexpEnd] { "r/" } regexpContent* RegexpEnd
 }
 
 String {
@@ -99,16 +100,20 @@ doubleQuoteStringContent {
   doubleQuoteStringContentToken | EscapedChar
 }
 
+InterpolatedStringStart[closedBy=InterpolatedStringEnd] { "#{" }
+
+InterpolatedStringEnd[openedBy=InterpolatedStringStart] { "}" }
+
 beginDoubleQuoteInterpolatedString {
-  "\"" doubleQuoteStringContent* "#{"
+  "\"" doubleQuoteStringContent* InterpolatedStringStart
 }
 
 innerDoubleQuoteInterpolatedString {
-  "}" doubleQuoteStringContent* "#{" StringInterpolation
+  InterpolatedStringEnd doubleQuoteStringContent* InterpolatedStringStart StringInterpolation
 }
 
 endDoubleQuoteInterpolatedString {
- !stringInterpolation "}" doubleQuoteStringContent* "\""
+ !stringInterpolation InterpolatedStringEnd doubleQuoteStringContent* "\""
 }
 
 doubleQuoteStringInterpolation {
@@ -125,15 +130,15 @@ singleQuoteStringContent {
 }
 
 beginSingleQuoteInterpolatedString {
-  "'" singleQuoteStringContent* "#{"
+  "'" singleQuoteStringContent* InterpolatedStringStart
 }
 
 innerSingleQuoteInterpolatedString {
-  "}" singleQuoteStringContent* "#{" StringInterpolation
+  InterpolatedStringEnd singleQuoteStringContent* InterpolatedStringStart StringInterpolation
 }
 
 endSingleQuoteInterpolatedString {
- !stringInterpolation "}" singleQuoteStringContent* "'"
+ !stringInterpolation InterpolatedStringEnd singleQuoteStringContent* "'"
 }
 
 singleQuoteStringInterpolation {
@@ -243,16 +248,16 @@ def {
 }
 
 Def {
-  def "(" optvar ":" Type ")" "="? Definition { exprs } dkw<"end"> |
-  def optvar "="? Definition { exprs } dkw<"end"> |
-  def Subfield "="? Definition { exprs } dkw<"end"> |
-  def (SubfieldLpar | varlpar) Arglist "="? Definition { exprs } dkw<"end">
+  def "(" defined<optvar> ":" Type ")" "="? Definition { exprs } dkw<"end"> |
+  def defined<optvar> "="? Definition { exprs } dkw<"end"> |
+  def defined<Subfield> "="? Definition { exprs } dkw<"end"> |
+  def defined<(SubfieldLpar | Varlpar)> Arglist "="? Definition { exprs } dkw<"end">
 }
 
 Let {
-  let Subfield "=" Definition { expr } |
-  let pattern "=" Definition { expr } |
-  let "(" pattern ":" Type ")" "=" Definition { expr }
+  let defined<Subfield> "=" Definition { expr } |
+  let defined<pattern> "=" Definition { expr } |
+  let "(" defined<pattern> ":" Type ")" "=" Definition { expr }
 }
 
 explicitBinding {
@@ -261,7 +266,7 @@ explicitBinding {
 }
 
 Binding {
-  optvar !binding "=" Definition { expr }
+  defined<optvar> !binding "=" Definition { expr }
 }
 
 binding /* precedence: binding */ {
@@ -336,14 +341,14 @@ pattern {
 
 Type {
   "_" |
-  Var|
+  var|
   Type "?" |
   "[" Type "]" |
   "[" Type "]" "as" "json.object" |
   (!lpar "(" TupleType ")") |
   ("(" ArgsType? ")" !yields "->" Type) |
   "{" RecordType? "}" |
-  Type "." Var |
+  Type "." Type { var } |
   Type "." "{" RecordType? "}" |
   SourceType
 }
@@ -353,30 +358,30 @@ RecordType {
 }
 
 MethType {
-  Var ":" Type |
-  Var "?" ":" Type |
-  String "as" Var ":" Type |
-  String "as" Var "?" ":" Type
+  Method ":" Type |
+  Method "?" ":" Type |
+  String "as" Method ":" Type |
+  String "as" Method "?" ":" Type
 }
 
 SourceType {
-  varlpar "(" ")" |
-  varlpar "(" SourceTracksType ")"
+  Varlpar "(" ")" |
+  Varlpar "(" SourceTracksType ")"
 }
 
 SourceTracksType {
-  Var "=" ContentType |
+  Method "=" ContentType |
   "..." |
-  Var "=" ContentType "," SourceTracksType
+  Method "=" ContentType "," SourceTracksType
 }
 
 ContentType {
   Var |
   Var "." Var |
   Var "." Var "." Var |
-  varlpar "(" ContentArgsType? ")" |
-  Var "." varlpar "(" ContentArgsType? ")" |
-  Var "." Var "." varlpar "(" ContentArgsType? ")"
+  Varlpar "(" ContentArgsType? ")" |
+  Var "." Varlpar "(" ContentArgsType? ")" |
+  Var "." Var "." Varlpar "(" ContentArgsType? ")"
 }
 
 ContentArgsType {
@@ -413,7 +418,7 @@ Subfield {
   Var "." inSubfield
 }
 
-Method { Var }
+Method { var }
 
 inSubfield {
   Method |
@@ -438,7 +443,7 @@ subfieldLpar {
 }
 
 inSubfieldLpar {
-  Method { varlpar } |
+  Varlpar |
   Method "." inSubfieldLpar
 }
 
@@ -513,7 +518,7 @@ appList {
 }
 
 MethodApp {
-  varlpar "(" appList? ")"
+  Varlpar "(" appList? ")"
 }
 
 invoked {
@@ -577,7 +582,7 @@ Invoke {
 }
 
 App {
-  varlpar "(" appList? ")"
+  Varlpar "(" appList? ")"
 }
 
 Append {
@@ -619,7 +624,7 @@ Try {
     TryBody
   ckw<"catch"> optvar kw<":"> List ckw<"do">
     TryDo { exprs }
-  ControlEnd { "end" } |
+  ckw<"end"> |
   ckw<"try">
     TryBody
   ckw<"catch"> optvar ckw<"do">
@@ -691,7 +696,6 @@ BlockComment {
   "#<" blockCommentContent* ">#"
 }
 
-
 @skip {
   spaces |
   newline |
@@ -717,7 +721,7 @@ BlockComment {
   @precedence { encoderName, bin2 }
   @precedence { Version, integer }
   @precedence { TimePredicate, integer }
-  @precedence { regexpContentToken, regexpEnd }
+  @precedence { regexpContentToken, RegexpEnd }
   @precedence { "\"", doubleQuoteStringContentToken }
   @precedence { "#{", doubleQuoteStringContentToken } 
   @precedence { "'", singleQuoteStringContentToken }
@@ -742,10 +746,17 @@ BlockComment {
   @precedence { blockCommentContent, spaces }
   @precedence { blockCommentContent, newline }
 
+  "{"[closedBy="}"]
+  "}"[openedBy="}"]
+  "("[closedBy=")"]
+  ")"[openedBy="("]
+  "["[closedBy="]"]
+  "["[openedBy="["]
+
   spaces { $[\u0009 \u000b\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000\ufeff]+ }
   newline { $[\r\n\u2028\u2029] }
   LineComment { "#" ![\n]* }
-  blockCommentContent { ![>]+ | ">" }
+  blockCommentContent { ![@>]+ | ">" }
 
   bin1 {
     "!=" | "==" | "<" | "<=" | ">" | ">="
@@ -760,7 +771,7 @@ BlockComment {
     $[0-9] $[0-9_]* | "0" $[xX] $[0-9a-fA-F_]+ | "0" $[oO] $[0-7_]+
   }
   Version {
-    $[0-9] $[0-9_]* "\\." $[0-9] $[0-9_]* "\\." $[0-9] $[0-9_]*
+    $[0-9] $[0-9_]* "." $[0-9] $[0-9_]* "." $[0-9] $[0-9_]*
   }
   Bool {
     "true" | "false"
@@ -775,7 +786,7 @@ BlockComment {
     ";"
   }
   regexpContentToken { ![/\\]+ }
-  regexpEnd { "/" $[gismu]* }
+  RegexpEnd[openedBy=regexpStart] { "/" $[gismu]* }
   EscapedChar { "\\" _ }
   doubleQuoteStringContentToken {
     !["#\\]+ | "#" 

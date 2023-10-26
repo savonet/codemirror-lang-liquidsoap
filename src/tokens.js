@@ -168,7 +168,7 @@ export const floatTok = new ExternalTokenizer((input, stack) => {
     next = input.peek(pos);
   }
 
-  if (String.fromCharCode(next) === "{") {
+  if (["{", "."].includes(String.fromCharCode(next))) {
     return;
   }
 

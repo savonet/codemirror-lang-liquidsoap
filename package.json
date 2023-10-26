@@ -1,6 +1,6 @@
 {
   "name": "codemirror-lang-liquidsoap",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Liquidsoap language support for prosemirror",
   "main": "dist/index.cjs",
   "bin": {
@@ -17,6 +17,8 @@
   "license": "MIT",
   "devDependencies": {
     "@lezer/generator": "^1.0.0",
+    "codemirror": "^6.0.1",
+    "prettier": "^3.0.3",
     "rollup": "^2.60.2",
     "rollup-plugin-dts": "^4.0.1",
     "rollup-plugin-preserve-shebang": "^1.0.1",
@@ -41,6 +43,7 @@
   "scripts": {
     "build": "lezer-generator src/liquidsoap.grammar -o src/parser && rollup -c && chmod +x dist/cli.js",
     "test": "./tests/run.sh",
+    "format": "pnpm prettier -w src/*.ts src/*.js",
     "prepare": "npm run build"
   }
 }
