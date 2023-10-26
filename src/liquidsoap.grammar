@@ -80,7 +80,7 @@ Encoder {
 }
 
 regexpContent {
-  regexpContentToken | EscapedChar
+  regexpContentToken | regexpSlashNoEscape | EscapedChar { "\\" "/" }
 }
 
 Regexp {
@@ -786,6 +786,7 @@ BlockComment {
     ";"
   }
   regexpContentToken { ![/\\]+ }
+  regexpSlashNoEscape { "\\" ![/] }
   RegexpEnd[openedBy=regexpStart] { "/" $[gismu]* }
   EscapedChar { "\\" _ }
   doubleQuoteStringContentToken {
