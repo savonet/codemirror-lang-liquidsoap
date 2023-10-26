@@ -531,7 +531,7 @@ Tuple {
 }
 
 AnonymousFunction {
-  "fun" Arglist !yields "->" expr
+  dkw<"fun"> Arglist !yields "->" expr
 }
 
 If {
