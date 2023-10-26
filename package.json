@@ -1,6 +1,6 @@
 {
   "name": "codemirror-lang-liquidsoap",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Liquidsoap language support for prosemirror",
   "main": "dist/index.cjs",
   "bin": {
@@ -41,7 +41,7 @@
     "url": "https://github.com/savonet/lezer-liquidsoap.git"
   },
   "scripts": {
-    "build": "lezer-generator src/liquidsoap.grammar -o src/parser && rollup -c && chmod +x dist/cli.js",
+    "build": "rm -rf dist && lezer-generator src/liquidsoap.grammar -o src/parser && rollup -c && chmod +x dist/cli.js",
     "test": "./tests/run.sh",
     "format": "pnpm prettier -w src/*.ts src/*.js",
     "prepare": "npm run build"

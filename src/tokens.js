@@ -28,6 +28,8 @@ const keywords = [
   "and",
   "or",
   "mod",
+  "true",
+  "false"
 ];
 
 export const noUminus = new ContextTracker({
