@@ -1,6 +1,6 @@
 {
   "name": "codemirror-lang-liquidsoap",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Liquidsoap language support for prosemirror",
   "main": "dist/index.cjs",
   "bin": {
