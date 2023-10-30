@@ -1,16 +1,19 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "lib": ["es6"],
-    "target": "es6",
-    "module": "es6",
+    "target": "es2015",
     "moduleResolution": "node",
-    "outDir": "dist",
-    "resolveJsonModule": true,
-    "emitDecoratorMetadata": true,
+    "strict": true,
+    "declaration": true,
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "sourceMap": true
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "declarationDir": "./types"
+  },  
+  "include": [
+    "src/**/*.ts"
+  ]
 }

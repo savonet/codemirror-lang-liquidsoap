@@ -14,15 +14,17 @@ enum Color {
   Yellow = 33,
 }
 
+type Node = {
+  readonly type: NodeType;
+  readonly from: number;
+  readonly to: number;
+};
+
 function colorize(value: any, color: number): string {
   return "\u001b[" + color + "m" + String(value) + "\u001b[39m";
 }
 
-function focusedNode(cursor: TreeCursor): {
-  readonly type: NodeType;
-  readonly from: number;
-  readonly to: number;
-} {
+function focusedNode(cursor: TreeCursor): Node {
   const { type, from, to } = cursor;
   return { type, from, to };
 }
@@ -37,7 +39,7 @@ export function printTree(
     includeParents?: boolean;
   } = {},
 ) {
-  let errors = [];
+  let errors: Node[] = [];
   const cursor = tree.cursor();
   const {
     from = 0,
