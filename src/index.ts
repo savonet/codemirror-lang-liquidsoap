@@ -15,6 +15,7 @@ export const LiquidsoapLanguage = LRLanguage.define({
         "LabeledArgument/...": t.labelName,
         Integer: t.integer,
         Float: t.float,
+        Minus: t.integer,
         Regexp: t.regexp,
         EscapedChar: t.escape,
         Op: t.operatorKeyword,

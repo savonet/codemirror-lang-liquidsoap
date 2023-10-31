@@ -1,6 +1,7 @@
 @context noUminus from "./tokens.js"
 
 @precedence {
+  uminus,
   blockComment @right
   include @left
   stringInterpolation @right
@@ -36,14 +37,6 @@ lop<term> { LogicalOperator { Op { term } } }
 cop<term> { ControlOperator { Op { term } } }
 aop<term> { ArithmeticOperator { Op { term } } }
 defined<term> { Defined { term } }
-
-Integer {
-  uminus? integer
-}
-
-Float {
-  uminus? float
-}
 
 Var {
   var
@@ -649,7 +642,7 @@ op {
 Infix { expr op expr }
 
 Minus {
-  uminus "(" expr ")"
+  !uminus uminus expr
 }
 
 expr {
@@ -704,7 +697,7 @@ BlockComment {
 }
 
 @external tokens varTok from "./tokens" { var, varLpar, varLbra }
-@external tokens floatTok from "./tokens" { float }
+@external tokens floatTok from "./tokens" { Float }
 @external tokens uminusTok from "./tokens" { uminus }
 
 @tokens {
@@ -719,8 +712,8 @@ BlockComment {
   @precedence { "%include", encoderName }
   @precedence { "%include_extra", encoderName }
   @precedence { encoderName, bin2 }
-  @precedence { Version, integer }
-  @precedence { TimePredicate, integer }
+  @precedence { Version, Integer }
+  @precedence { TimePredicate, Integer }
   @precedence { regexpContentToken, RegexpEnd }
   @precedence { "\"", doubleQuoteStringContentToken }
   @precedence { "#{", doubleQuoteStringContentToken } 
@@ -767,7 +760,7 @@ BlockComment {
   bin3 {
     "/" | "*." | "/." | "*" | "mod"
   }
-  integer {
+  Integer {
     $[0-9] $[0-9_]* | "0" $[xX] $[0-9a-fA-F_]+ | "0" $[oO] $[0-7_]+
   }
   Version {

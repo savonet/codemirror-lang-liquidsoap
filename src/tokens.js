@@ -1,5 +1,5 @@
 import { ExternalTokenizer, ContextTracker } from "@lezer/lr";
-import { _var, varLpar, varLbra, uminus, float } from "./parser.terms.js";
+import { _var, varLpar, varLbra, uminus, Float } from "./parser.terms.js";
 
 const whiteSpace = /[ \t]/;
 
@@ -29,7 +29,7 @@ const keywords = [
   "or",
   "mod",
   "true",
-  "false"
+  "false",
 ];
 
 export const noUminus = new ContextTracker({
@@ -152,7 +152,7 @@ export const floatTok = new ExternalTokenizer((input, stack) => {
 
   if (hasPrefix && whiteSpace.test(String.fromCharCode(input.peek(1)))) {
     stack.context.disabled = true;
-    input.acceptToken(float);
+    input.acceptToken(Float);
     return;
   }
 
@@ -175,7 +175,7 @@ export const floatTok = new ExternalTokenizer((input, stack) => {
   }
 
   stack.context.disabled = true;
-  input.acceptToken(float);
+  input.acceptToken(Float);
   return;
 });
 
@@ -188,8 +188,11 @@ export const uminusTok = new ExternalTokenizer(
       prev = input.peek(pos);
     }
 
-    if (String.fromCharCode(prev) === ")") stack.context.disabled = true;
-    if (/[,=(]/.test(String.fromCharCode(prev))) stack.context.disabled = false;
+    if (["}", ")"].includes(String.fromCharCode(prev)))
+      stack.context.disabled = true;
+    if (/[0-9]/.test(String.fromCharCode(prev))) stack.context.disabled = true;
+    if (/[,=(.+-/*]/.test(String.fromCharCode(prev)))
+      stack.context.disabled = false;
     if (keywords.includes(previousKeyword(input, 0)))
       stack.context.disabled = false;
 
