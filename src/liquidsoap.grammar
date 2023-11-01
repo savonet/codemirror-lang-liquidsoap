@@ -471,7 +471,7 @@ innerListItem {
 }
 
 innerList {
-  (innerListItem ",")* innerListItem
+  (innerListItem ",")* innerListItem ","?
 }
 
 List {
