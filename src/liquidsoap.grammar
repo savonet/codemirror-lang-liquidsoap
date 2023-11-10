@@ -484,7 +484,8 @@ innerTuple {
 }
 
 RecordEntry {
-  Method "=" expr
+  Method "=" expr |
+  Op { "..." } expr
 }
 
 record /* precedence: left 1 */ {
@@ -551,8 +552,6 @@ Set {
 
 Record {
   (expr !dot "." "{" record? ","? "}") |
-  "{" Op { "..." } expr "}" |
-  "{" record "," Op { "..." } expr "}" |
   "{" record ","? "}" |
   "{" "}"
 }
