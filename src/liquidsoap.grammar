@@ -681,7 +681,8 @@ expr {
   And |
   Or |
   Infix |
-  TimePredicate
+  TimePredicate |
+  TimeInterval
 }
 
 BlockComment {
@@ -713,6 +714,8 @@ BlockComment {
   @precedence { encoderName, bin2 }
   @precedence { Version, Integer }
   @precedence { TimePredicate, Integer }
+  @precedence { TimeInterval, TimePredicate }
+  @precedence { TimeInterval, Integer }
   @precedence { regexpContentToken, RegexpEnd }
   @precedence { "\"", doubleQuoteStringContentToken }
   @precedence { "#{", doubleQuoteStringContentToken } 
@@ -774,6 +777,11 @@ BlockComment {
   TimePredicate /* precedence: left 1 */ {
     ($[0-9]+ "w")? $[0-9]+ "h" $[0-9]+ | $[0-9]+ "w" ($[0-9]+ "h")? ($[0-9]+ "m")? ($[0-9]+ "s")? | ($[0-9]+ "w")? $[0-9]+ "h" ($[0-9]+ "m")? ($[0-9]+ "s")? | ($[0-9]+ "w")? ($[0-9]+ "h")? $[0-9]+ "m" ($[0-9]+ "s")? | ($[0-9]+ "w")? ($[0-9]+ "h")? ($[0-9]+ "m")? $[0-9]+ "s"
   }
+
+  TimeInterval {
+    TimePredicate "-" TimePredicate
+  }
+
   exprSep {
     ";"
   }

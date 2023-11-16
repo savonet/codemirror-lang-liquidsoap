@@ -13,6 +13,8 @@ export const LiquidsoapLanguage = LRLanguage.define({
         String: t.string,
         "Method/...": t.propertyName,
         "LabeledArgument/...": t.labelName,
+        TimePredicate: t.number,
+        TimeInterval: t.number,
         Integer: t.integer,
         Float: t.float,
         Minus: t.integer,
