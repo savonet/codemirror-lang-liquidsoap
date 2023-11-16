@@ -42,7 +42,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/savonet/lezer-liquidsoap.git"
+    "url": "https://github.com/savonet/codemirror-lang-liquidsoap.git"
   },
   "scripts": {
     "build": "rm -rf dist && lezer-generator src/liquidsoap.grammar -o src/parser && rollup -c && chmod +x dist/cli.js",
