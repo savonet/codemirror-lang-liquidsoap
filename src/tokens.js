@@ -3,7 +3,7 @@ import { _var, varLpar, varLbra, uminus, Float } from "./parser.terms.js";
 
 const whiteSpace = /[ \t]/;
 
-const letKeywords = ["eval", "replaces", "json", "yaml"];
+const letKeywords = ["eval", "replaces", "json", "yaml", "sqlite"];
 
 const defKeywords = ["rec", "replaces"];
 
@@ -87,7 +87,7 @@ export const varTok = new ExternalTokenizer((input, stack) => {
 
   if (prevKeyword === "def" && defKeywords.includes(str)) return;
   if (prevKeyword === "let" && letKeywords.includes(str)) {
-    if (!["json", "yaml"].includes(str)) return;
+    if (!["json", "yaml", "sqlite"].includes(str)) return;
 
     let parseStr = "";
     let parsePos = 0;
@@ -96,7 +96,8 @@ export const varTok = new ExternalTokenizer((input, stack) => {
       parsePos++;
     }
 
-    if (parseStr === ".parse") return;
+    if (["json", "yaml"].includes(str) && parseStr === ".parse") return;
+    if (str === "sqlite" && [".row", ".query"].includes(parseStr)) return;
   }
 
   if (
