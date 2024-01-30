@@ -151,7 +151,7 @@ export const floatTok = new ExternalTokenizer((input, stack) => {
 
   next = input.advance();
 
-  if (hasPrefix && whiteSpace.test(String.fromCharCode(input.peek(1)))) {
+  if (hasPrefix && whiteSpace.test(String.fromCharCode(next))) {
     stack.context.disabled = true;
     input.acceptToken(Float);
     return;
