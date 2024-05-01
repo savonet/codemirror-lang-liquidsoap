@@ -612,16 +612,27 @@ Coalesce {
 
 TryBody { exprs }
 
+TryFinally {
+  ckw<"finally">
+  exprs
+}
+
 Try {
+  ckw<"try">
+    TryBody
+    TryFinally
+  ckw<"end"> |
   ckw<"try">
     TryBody
   ckw<"catch"> optvar kw<":"> List ckw<"do">
     TryDo { exprs }
+  TryFinally?
   ckw<"end"> |
   ckw<"try">
     TryBody
   ckw<"catch"> optvar ckw<"do">
     TryDo { exprs }
+    TryFinally?
   ckw<"end">
 }
 

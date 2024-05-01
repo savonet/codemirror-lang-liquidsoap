@@ -25,6 +25,7 @@ const keywords = [
   "to",
   "try",
   "catch",
+  "finally",
   "and",
   "or",
   "mod",
