@@ -387,9 +387,11 @@ ContentArgType {
   String |
   Integer |
   Float |
+  ExpFloat |
   Var "=" Var |
   Var "=" String |
   Var "=" Integer |
+  Var "=" ExpFloat |
   Var "=" Float
 }
 
@@ -459,7 +461,7 @@ IfEncoder {
 }
 
 IfVersion {
-  kw<"%ifversion"> (cop<"=="> | cop<">="> | cop<"<="> | cop<">"> | cop<"<">) (Integer | Float | Version) exprs (kw<"%else"> exprs)? kw<"%endif">
+  kw<"%ifversion"> (cop<"=="> | cop<">="> | cop<"<="> | cop<">"> | cop<"<">) (Integer | ExpFloat | Float | Version) exprs (kw<"%else"> exprs)? kw<"%endif">
 }
 
 innerListSpread {
@@ -667,6 +669,7 @@ expr {
   Not |
   Bool |
   Float |
+  ExpFloat |
   Minus |
   String |
   Var |
@@ -725,6 +728,7 @@ BlockComment {
   @precedence { "%include_extra", encoderName }
   @precedence { encoderName, bin2 }
   @precedence { Version, Integer }
+  @precedence { ExpFloat, Integer }
   @precedence { TimePredicate, Integer }
   @precedence { TimeInterval, TimePredicate }
   @precedence { TimeInterval, Integer }
@@ -776,6 +780,9 @@ BlockComment {
   }
   Integer {
     $[0-9] $[0-9_]* | "0" $[xX] $[0-9a-fA-F_]+ | "0" $[oO] $[0-7_]+
+  }
+  ExpFloat {
+    $[0-9] $[eE] $[-+]? $[0-9] $[0-9_]*
   }
   Version {
     $[0-9] $[0-9_]* "." $[0-9] $[0-9_]* "." $[0-9] $[0-9_]*
