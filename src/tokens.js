@@ -131,6 +131,22 @@ export const varTok = new ExternalTokenizer((input, stack) => {
   input.acceptToken(_var);
 });
 
+const floatOptExp = (input, stack) => {
+  let next = input.advance();
+  if (String.fromCharCode(next) === "-" || String.fromCharCode(next) === "+")
+    next = input.advance();
+
+  if (!/[0-9_]/.test(String.fromCharCode(next))) return;
+
+  next = input.advance();
+  while (/[0-9_]/.test(String.fromCharCode(next))) {
+    next = input.advance();
+  }
+
+  stack.context.disabled = true;
+  input.acceptToken(Float);
+};
+
 export const floatTok = new ExternalTokenizer((input, stack) => {
   let { next } = input;
   let hasPrefix = false;
@@ -145,6 +161,9 @@ export const floatTok = new ExternalTokenizer((input, stack) => {
       next = input.advance();
     }
   }
+
+  if (String.fromCharCode(next) === "e" || String.fromCharCode(next) === "E")
+    return floatOptExp(input, stack);
 
   if (String.fromCharCode(next) !== ".") {
     return;
@@ -163,6 +182,9 @@ export const floatTok = new ExternalTokenizer((input, stack) => {
   while (/[0-9_]/.test(String.fromCharCode(next))) {
     next = input.advance();
   }
+
+  if (String.fromCharCode(next) === "e" || String.fromCharCode(next) === "E")
+    return floatOptExp(input, stack);
 
   let pos = 0;
   next = input.peek(pos);
