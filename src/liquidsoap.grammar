@@ -343,6 +343,7 @@ Type {
   ("(" ArgsType? ")" !yields "->" Type) |
   "{" RecordType? "}" |
   Type "." Type { var } |
+  Type !question "?." "{" RecordType? "}" |
   Type "." "{" RecordType? "}" |
   SourceType
 }
