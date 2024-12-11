@@ -3,7 +3,7 @@ import { _var, varLpar, varLbra, uminus, Float } from "./parser.terms.js";
 
 const whiteSpace = /[ \t]/;
 
-const letKeywords = ["eval", "replaces", "json", "yaml", "sqlite"];
+const letKeywords = ["eval", "replaces", "json", "yaml", "xml", "sqlite"];
 
 const defKeywords = ["rec", "replaces"];
 

@@ -216,8 +216,11 @@ parseDecorationArgs {
 }
 
 parseDecoration /* precedence: right 1 */ {
-  (kw<"json"> | kw<"yaml"> | kw<"xml">) "." kw<"parse"> (!no_app "[" parseDecorationArgs? "]")? |
-  kw<"sqlite"> "." (kw<"row"> | kw<"query">)
+  kw<"yaml"> "." kw<"parse"> |
+  kw<"xml"> "." kw<"parse"> |
+  kw<"json"> "." kw<"parse"> (!no_app "[" parseDecorationArgs? "]")? |
+  kw<"sqlite"> "." kw<"row"> |
+  kw<"sqlite"> "." kw<"query">
 }
 
 defDecoration {
