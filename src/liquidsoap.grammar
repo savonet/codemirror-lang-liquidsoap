@@ -175,6 +175,8 @@ AnonymousArgument {
 LabeledArgument {
   "~" Var opt? |
   "~" "(" Var ":" Type ")" opt? |
+  "~" Var ":" optvar opt? |
+  "~" Var ":" "(" optvar ":" Type ")" opt? |
   "~" Var "=" "_"
 }
 
