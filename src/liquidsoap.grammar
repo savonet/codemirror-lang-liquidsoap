@@ -168,15 +168,15 @@ opt {
 }
 
 AnonymousArgument {
-  optvar opt? |
-  "(" optvar ":" Type ")" opt?
+  pattern opt? |
+  "(" pattern ":" Type ")" opt?
 }
 
 LabeledArgument {
   "~" Var opt? |
   "~" "(" Var ":" Type ")" opt? |
-  "~" Var ":" optvar opt? |
-  "~" Var ":" "(" optvar ":" Type ")" opt? |
+  "~" Var ":" pattern opt? |
+  "~" Var ":" "(" pattern ":" Type ")" opt? |
   "~" Var "=" "_"
 }
 
