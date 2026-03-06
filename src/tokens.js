@@ -1,5 +1,5 @@
 import { ExternalTokenizer, ContextTracker } from "@lezer/lr";
-import { _var, varLpar, varLbra, uminus, Float } from "./parser.terms.js";
+import { _var, varLpar, varLbra, uminus, Float, RawString } from "./parser.terms.js";
 
 const whiteSpace = /[ \t]/;
 
@@ -234,3 +234,38 @@ export const uminusTok = new ExternalTokenizer(
   },
   { contextual: true },
 );
+
+export const rawStringTok = new ExternalTokenizer((input) => {
+  if (String.fromCharCode(input.next) !== "{") return;
+  input.advance();
+
+  let id = "";
+  while (/[a-z_]/.test(String.fromCharCode(input.next))) {
+    id += String.fromCharCode(input.next);
+    input.advance();
+  }
+
+  if (String.fromCharCode(input.next) !== "|") return;
+  input.advance();
+
+  while (input.next >= 0) {
+    if (String.fromCharCode(input.next) !== "|") {
+      input.advance();
+      continue;
+    }
+    input.advance();
+    let matchPos = 0;
+    while (
+      matchPos < id.length &&
+      String.fromCharCode(input.next) === id[matchPos]
+    ) {
+      input.advance();
+      matchPos++;
+    }
+    if (matchPos === id.length && String.fromCharCode(input.next) === "}") {
+      input.advance();
+      input.acceptToken(RawString);
+      return;
+    }
+  }
+});

@@ -82,7 +82,8 @@ Regexp {
 
 String {
   doubleQuoteString |
-  singleQuoteString
+  singleQuoteString |
+  RawString
 }
 
 StringInterpolation {
@@ -722,6 +723,7 @@ BlockComment {
 @external tokens varTok from "./tokens" { var, varLpar, varLbra }
 @external tokens floatTok from "./tokens" { Float }
 @external tokens uminusTok from "./tokens" { uminus }
+@external tokens rawStringTok from "./tokens" { RawString }
 
 @tokens {
   @precedence { "%argsof", encoderName }
