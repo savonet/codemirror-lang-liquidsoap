@@ -265,8 +265,13 @@ explicitBinding {
   Def
 }
 
+// The left-hand side is parsed as an expression, exactly as liquidsoap's own
+// parser does: `(a, b)` is both a tuple and a tuple pattern, and which one it
+// is only becomes clear at the `=`. Parsing it as an expression means there is
+// nothing to disambiguate.
 Binding {
-  defined<optvar> !binding "=" Definition { expr }
+  defined<expr> !binding "=" Definition { expr } |
+  defined<"_"> !binding "=" Definition { expr }
 }
 
 binding /* precedence: binding */ {
