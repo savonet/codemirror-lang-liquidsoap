@@ -215,7 +215,9 @@ export const uminusTok = new ExternalTokenizer(
     if (["}", ")"].includes(String.fromCharCode(prev)))
       stack.context.disabled = true;
     if (/[0-9]/.test(String.fromCharCode(prev))) stack.context.disabled = true;
-    if (/[,=(.+-/*]/.test(String.fromCharCode(prev)))
+    // An operator or opening bracket is followed by an operand, so a "-" after
+    // one is a sign. "?" and ":" cover the ternary and "??".
+    if (/[,=(.+\-/*?:;<>[{|&!%^@]/.test(String.fromCharCode(prev)))
       stack.context.disabled = false;
     if (keywords.includes(previousKeyword(input, 0)))
       stack.context.disabled = false;
