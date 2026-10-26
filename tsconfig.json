@@ -2,7 +2,10 @@
   "compileOnSave": false,
   "compilerOptions": {
     "target": "es2015",
-    "moduleResolution": "node",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "rootDir": "./src",
+    "types": ["node"],
     "strict": true,
     "declaration": true,
     "esModuleInterop": true,
@@ -11,7 +14,7 @@
     "importHelpers": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "declarationDir": "./types"
+    "declarationDir": "./dist/types"
   },  
   "include": [
     "src/**/*.ts"
