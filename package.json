@@ -12,6 +12,9 @@
   },
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "author": "Romain Beauxis <toots@rastageeks.org>",
   "license": "MIT",
