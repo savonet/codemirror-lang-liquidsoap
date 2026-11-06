@@ -356,7 +356,8 @@ Type {
   Type "." Type { var } |
   Type !question "?." "{" RecordType? "}" |
   Type "." "{" RecordType? "}" |
-  SourceType
+  SourceType |
+  kw<"%typeof"> "(" expr ")"
 }
 
 RecordType {
@@ -732,6 +733,7 @@ BlockComment {
 
 @tokens {
   @precedence { "%argsof", encoderName }
+  @precedence { "%typeof", encoderName }
   @precedence { "%ifdef", encoderName }
   @precedence { "%ifndef", encoderName }
   @precedence { "%ifencoder", encoderName }
